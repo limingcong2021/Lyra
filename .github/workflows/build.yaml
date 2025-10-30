@@ -34,7 +34,7 @@ jobs:
       - name: Download HTML Template
         uses: robinraju/release-downloader@v1.12
         with:
-          repository: "DoL-Lyra/Lyra"
+          repository: "DoL-Lyra/DoLModLoaderBuild"
           latest: true
           fileName: "DoL-ModLoader-*.zip"
 

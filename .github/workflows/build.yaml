@@ -41,7 +41,7 @@ jobs:
       # 解压并重命名文件
       - name: Extract and Prepare Files
         run: |
-          unzip -q DoL-ModLoader-*.zip -d ${{ env.DOWNLOAD_RELEASE_TEMP_PATH }}
+          unzip -q DoL-ModLoader-*-132.zip -d ${{ env.DOWNLOAD_RELEASE_TEMP_PATH }}
           mv "${{ env.DOWNLOAD_RELEASE_TEMP_PATH }}/Degrees of Lewdity.html" "${{ env.DOWNLOAD_RELEASE_TEMP_PATH }}/${{ env.MODLOADER_HTML_NORMAL_FILENAME }}"
           cp -r .github/pwa/* ${{ env.DOWNLOAD_RELEASE_TEMP_PATH }}
 

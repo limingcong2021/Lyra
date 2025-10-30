@@ -45,26 +45,35 @@ jobs:
       - name: Modify HTML for Cloudflare Pages
         shell: python3 {0}
         run: |
+          import os
           import json
 
-          # 修改 HTML 文件
-          with open(f"${{ env.DOWNLOAD_RELEASE_TEMP_PATH }}/{env.MODLOADER_HTML_NORMAL_FILENAME}", "r+", encoding="utf-8") as html_file:
-            html_content = html_file.read()
-            insert_index = html_content.find('<meta charset="UTF-8" />')
-            html_content = html_content[:insert_index] + \
-                f"<link rel=\"manifest\" href=\"{env.MANIFEST_JSON_NORMAL_FILENAME}\">\n" + html_content[insert_index:]
-            html_file.seek(0)
-            html_file.truncate()
-            html_file.write(html_content)
+          # 获取环境变量
+          MODLOADER_HTML_NORMAL_FILENAME = os.environ.get("MODLOADER_HTML_NORMAL_FILENAME")
+          DOWNLOAD_RELEASE_TEMP_PATH = os.environ.get("DOWNLOAD_RELEASE_TEMP_PATH")
+          MANIFEST_JSON_NORMAL_FILENAME = os.environ.get("MANIFEST_JSON_NORMAL_FILENAME")
 
-          # 修改 manifest.json 路径
-          with open(f"${{ env.DOWNLOAD_RELEASE_TEMP_PATH }}/{env.MANIFEST_JSON_NORMAL_FILENAME}", "r+", encoding="utf-8") as manifest_file:
-            manifest_data = json.loads(manifest_file.read())
-            manifest_data["scope"] = "/${{ github.event.repository.name }}/"
-            manifest_data["start_url"] = "/${{ github.event.repository.name }}/"
-            manifest_file.seek(0)
-            manifest_file.truncate()
-            manifest_file.write(json.dumps(manifest_data, indent=2))
+          # 修改 HTML 文件
+          html_path = f"{DOWNLOAD_RELEASE_TEMP_PATH}/{MODLOADER_HTML_NORMAL_FILENAME}"
+          with open(html_path, "r+", encoding="utf-8") as html_file:
+              html_content = html_file.read()
+              insert_index = html_content.find('<meta charset="UTF-8" />')
+              html_content = html_content[:insert_index] + \
+              f"<link rel=\"manifest\" href=\"{MANIFEST_JSON_NORMAL_FILENAME}\">\n" + html_content[insert_index:]
+              html_file.seek(0)
+              html_file.truncate()
+              html_file.write(html_content)
+
+              # 修改 manifest.json
+              manifest_path = f"{DOWNLOAD_RELEASE_TEMP_PATH}/{MANIFEST_JSON_NORMAL_FILENAME}"
+              with open(manifest_path, "r+", encoding="utf-8") as manifest_file:
+              manifest_data = json.loads(manifest_file.read())
+              manifest_data["scope"] = f"/${{ github.event.repository.name }}/"
+              manifest_data["start_url"] = f"/${{ github.event.repository.name }}/"
+              manifest_file.seek(0)
+              manifest_file.truncate()
+              manifest_file.write(json.dumps(manifest_data, indent=2))
+
 
       - name: Pack HTML Artifact
         run: |

@@ -28,7 +28,7 @@ const rtcConfig = {
 
 // 事件处理器 - 接收来自主线程的消息
 self.onmessage = function(event) {
-    const { type, config: newConfig, roomConfig, roomId: targetRoomId, action, state } = event.data;
+    const { type, config: newConfig, roomConfig, roomId: targetRoomId, action, state, location, playerId, requestId, targetPlayerId, playerInfo, inviteOnly, inviteeId, requesterId } = event.data;
 
     switch (type) {
         case 'INIT':
@@ -53,6 +53,22 @@ self.onmessage = function(event) {
         
         case 'SYNC_STATE':
             handleSyncState(state);
+            break;
+        
+        case 'UPDATE_LOCATION':
+            handleUpdateLocation(location, playerId);
+            break;
+            
+        case 'SEND_COMBAT_REQUEST':
+            handleSendCombatRequest(requestId, targetPlayerId, playerInfo, location);
+            break;
+            
+        case 'ACCEPT_COMBAT_REQUEST':
+            handleAcceptCombatRequest(requestId, requesterId, targetRoomId);
+            break;
+            
+        case 'REJECT_COMBAT_REQUEST':
+            handleRejectCombatRequest(requestId, requesterId);
             break;
         
         default:
@@ -260,6 +276,75 @@ function handleSyncState(state) {
 }
 
 /**
+ * 更新玩家位置
+ */
+function handleUpdateLocation(location, playerId) {
+    if (!isConnected) {
+        return;
+    }
+    
+    sendToSignalingServer({
+        type: 'UPDATE_LOCATION',
+        playerId: playerId,
+        location: location
+    });
+}
+
+/**
+ * 发送战斗请求
+ */
+function handleSendCombatRequest(requestId, targetPlayerId, playerInfo, location) {
+    if (!isConnected) {
+        sendError('未连接到服务器');
+        return;
+    }
+    
+    sendToSignalingServer({
+        type: 'SEND_COMBAT_REQUEST',
+        requestId: requestId,
+        senderId: playerId,
+        targetPlayerId: targetPlayerId,
+        playerInfo: playerInfo,
+        location: location
+    });
+}
+
+/**
+ * 接受战斗请求
+ */
+function handleAcceptCombatRequest(requestId, requesterId, targetRoomId) {
+    if (!isConnected) {
+        sendError('未连接到服务器');
+        return;
+    }
+    
+    sendToSignalingServer({
+        type: 'ACCEPT_COMBAT_REQUEST',
+        requestId: requestId,
+        receiverId: playerId,
+        requesterId: requesterId,
+        roomId: targetRoomId
+    });
+}
+
+/**
+ * 拒绝战斗请求
+ */
+function handleRejectCombatRequest(requestId, requesterId) {
+    if (!isConnected) {
+        sendError('未连接到服务器');
+        return;
+    }
+    
+    sendToSignalingServer({
+        type: 'REJECT_COMBAT_REQUEST',
+        requestId: requestId,
+        receiverId: playerId,
+        requesterId: requesterId
+    });
+}
+
+/**
  * 处理来自信令服务器的消息
  */
 function handleSignalingMessage(message) {
@@ -335,6 +420,50 @@ function handleSignalingMessage(message) {
         case 'ERROR':
             // 收到错误消息
             sendError(message.message);
+            break;
+            
+        case 'COMBAT_REQUEST_RECEIVED':
+            // 收到战斗请求
+            sendToMainThread({
+                type: 'COMBAT_REQUEST_RECEIVED',
+                data: {
+                    requestId: message.requestId,
+                    requesterId: message.requesterId,
+                    playerInfo: message.playerInfo,
+                    location: message.location
+                }
+            });
+            break;
+            
+        case 'COMBAT_REQUEST_ACCEPTED':
+            // 战斗请求被接受
+            sendToMainThread({
+                type: 'COMBAT_REQUEST_ACCEPTED',
+                data: {
+                    requestId: message.requestId,
+                    roomId: message.roomId
+                }
+            });
+            break;
+            
+        case 'COMBAT_REQUEST_REJECTED':
+            // 战斗请求被拒绝
+            sendToMainThread({
+                type: 'COMBAT_REQUEST_REJECTED',
+                data: {
+                    requestId: message.requestId
+                }
+            });
+            break;
+            
+        case 'PLAYERS_IN_SAME_LOCATION':
+            // 检测到同一位置的玩家
+            sendToMainThread({
+                type: 'PLAYERS_IN_SAME_LOCATION',
+                data: {
+                    players: message.players
+                }
+            });
             break;
             
         default:
@@ -541,6 +670,14 @@ function handleDataChannelMessage(from, message) {
                     });
                 });
             }
+            break;
+            
+        case 'COMBAT_END':
+            // 处理战斗结束消息
+            sendToMainThread({
+                type: 'ACTION_RECEIVED',
+                data: { action: message }
+            });
             break;
             
         default:

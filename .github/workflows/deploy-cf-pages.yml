@@ -28,6 +28,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          repository: DoL-Lyra/Lyra
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 创建临时目录
         run: |
@@ -99,7 +102,10 @@ jobs:
     needs: build  # 依赖 build job
     steps:
       - uses: actions/checkout@v4
-
+        with:
+          repository: DoL-Lyra/Lyra
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
       - name: 下载构建产物
         uses: actions/download-artifact@v4
         with:

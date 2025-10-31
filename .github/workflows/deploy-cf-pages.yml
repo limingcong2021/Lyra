@@ -5,6 +5,9 @@ on:
   push:
     branches:
       - main  # 自动触发 main 分支的提交
+    tags:  # 自动触发标签创建
+      - '*'
+  workflow_call:  # 允许被其他工作流调用
 
 env:
   # 构建临时路径

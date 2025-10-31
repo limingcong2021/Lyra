@@ -69,3 +69,14 @@ jobs:
         with:
           tag_name: ${{ env.NEW_TAG }}
           draft: true
+          generate_release_notes: true
+
+      - name: 触发 Cloudflare Pages 部署
+        if: env.NEED_UPDATE == 'true'
+        uses: convictional/trigger-workflow-and-wait@v1.6.5
+        with:
+          owner: ${{ github.repository_owner }}
+          repo: ${{ github.repository }}
+          ref: ${{ github.ref }}
+          workflow_file_name: deploy-cf-pages.yml
+          github_token: ${{ secrets.GH_PAT_LYRA }}

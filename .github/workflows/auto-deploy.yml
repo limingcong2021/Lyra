@@ -279,16 +279,18 @@ jobs:
           keep_history: false
           target_branch: gh-pages
       
-      # 检查Cloudflare Pages环境变量
+      # 使用更可靠的方法检查Cloudflare Pages环境变量
       - name: 检查Cloudflare Pages环境变量
         id: check_cf_pages_env
         run: |
-          if [ -z "${{ secrets.CF_PAGES_API_TOKEN }}" ]; then
+          # 使用表达式长度检查而不是空值检查，更可靠地检测GitHub Secrets
+          TOKEN_LENGTH=$(echo -n "${{ secrets.CF_PAGES_API_TOKEN }}" | wc -c)
+          if [ "$TOKEN_LENGTH" -gt 0 ]; then
+            echo "CF_PAGES_API_TOKEN 环境变量已设置（长度验证）"
+            echo "has_token=true" >> $GITHUB_OUTPUT
+          else
             echo "警告: CF_PAGES_API_TOKEN 环境变量未设置，跳过Cloudflare Pages部署"
             echo "has_token=false" >> $GITHUB_OUTPUT
-          else
-            echo "CF_PAGES_API_TOKEN 环境变量已设置"
-            echo "has_token=true" >> $GITHUB_OUTPUT
           fi
       
       # 部署到Cloudflare Pages（仅当环境变量存在时）
@@ -323,21 +325,23 @@ jobs:
       - name: 检查环境变量
         id: check_env
         run: |
-          # 检查必要的环境变量
-          if [ -z "${{ secrets.CF_PAGES_API_TOKEN }}" ]; then
+          # 使用更可靠的长度检查方法检测GitHub Secrets
+          TOKEN_LENGTH=$(echo -n "${{ secrets.CF_PAGES_API_TOKEN }}" | wc -c)
+          if [ "$TOKEN_LENGTH" -gt 0 ]; then
+            echo "CF_PAGES_API_TOKEN 环境变量已设置（长度验证）"
+            echo "has_token=true" >> $GITHUB_OUTPUT
+          else
             echo "警告: CF_PAGES_API_TOKEN 环境变量未设置"
             echo "has_token=false" >> $GITHUB_OUTPUT
-          else
-            echo "CF_PAGES_API_TOKEN 环境变量已设置"
-            echo "has_token=true" >> $GITHUB_OUTPUT
           fi
           
-          if [ -z "${{ secrets.CF_ACCOUNT_ID }}" ]; then
+          ACCOUNT_ID_LENGTH=$(echo -n "${{ secrets.CF_ACCOUNT_ID }}" | wc -c)
+          if [ "$ACCOUNT_ID_LENGTH" -gt 0 ]; then
+            echo "CF_ACCOUNT_ID 环境变量已设置（长度验证）"
+            echo "has_account=true" >> $GITHUB_OUTPUT
+          else
             echo "警告: CF_ACCOUNT_ID 环境变量未设置"
             echo "has_account=false" >> $GITHUB_OUTPUT
-          else
-            echo "CF_ACCOUNT_ID 环境变量已设置"
-            echo "has_account=true" >> $GITHUB_OUTPUT
           fi
       
       - name: 检查Worker脚本是否存在

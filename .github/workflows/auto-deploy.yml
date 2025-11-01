@@ -285,8 +285,12 @@ jobs:
         uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CF_PAGES_API_TOKEN }}
+          accountId: ${{ secrets.CF_ACCOUNT_ID }}
           projectName: "degrees-of-lewdity"
           directory: "./modloader-temp"
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          branch: main
+          wranglerVersion: '3'
       
       # 输出部署信息
       - name: 输出部署信息

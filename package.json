@@ -1,0 +1,15 @@
+{
+  "name": "dol-lyra",
+  "version": "1.0.0",
+  "description": "DoL-Lyra项目构建配置",
+  "private": true,
+  "scripts": {
+    "test": "echo \"构建过程中不需要测试\" && exit 0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DoL-Lyra/Lyra.git"
+  },
+  "author": "DoL-Lyra Team",
+  "license": "MIT"
+}

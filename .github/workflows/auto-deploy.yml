@@ -245,17 +245,17 @@ jobs:
                 
             with open(manifest_path, "r+", encoding="utf-8") as manifest_file:
               manifest_json = json.loads(manifest_file.read())
-              # 更新路径配置
-              manifest_json["scope"] = "/${{ github.event.repository.name }}/"
-              manifest_json["start_url"] = "/${{ github.event.repository.name }}/"
+              # 更新路径配置为相对路径
+              manifest_json["scope"] = "/"
+              manifest_json["start_url"] = "/"
               
-              # 更新快捷方式URL
+              # 更新快捷方式URL为相对路径
               if "shortcuts" in manifest_json and len(manifest_json["shortcuts"]) > 0:
-                  manifest_json["shortcuts"][0]["url"] = "/${{ github.event.repository.name }}/"
+                  manifest_json["shortcuts"][0]["url"] = "/"
               
-              # 更新图标路径
+              # 更新图标路径为相对路径
               if "icons" in manifest_json and len(manifest_json["icons"]) > 0:
-                  manifest_json["icons"][0]["src"] = "/${{ github.event.repository.name }}/icon.png"
+                  manifest_json["icons"][0]["src"] = "/icon.png"
               
               # 写入更新后的配置
               manifest_file.seek(0)
@@ -267,14 +267,11 @@ jobs:
       - name: 部署到GitHub Pages
         id: deploy_github
         uses: crazy-max/ghaction-github-pages@v4
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GH_PAT: ${{ secrets.GH_PAT_LYRA }}
         with:
-          repo: DoL-Lyra/dol-lyra.github.io
+          token: ${{ secrets.GITHUB_TOKEN }}
           build_dir: ./modloader-temp
           keep_history: false
-          target_branch: pages
+          target_branch: gh-pages
       
       # 部署到Cloudflare Pages
       - name: 部署到Cloudflare Pages
@@ -322,8 +319,8 @@ jobs:
         if: steps.check_worker.outputs.exists == 'true'
         run: |
           echo "检查Worker脚本语法..."
-          # 使用Node.js的语法检查模式，指定为ES模块
-          node --input-type=module --check ${{ env.WORKER_SCRIPT_PATH }} || {
+          # 使用Node.js的语法检查模式，依赖package.json中的"type": "module"配置
+          node --check ${{ env.WORKER_SCRIPT_PATH }} || {
             echo "Worker脚本语法检查失败！"
             exit 1
           }
@@ -371,7 +368,8 @@ jobs:
         id: verify_github_pages
         continue-on-error: true  # 即使验证失败也继续
         run: |
-          PAGES_URL="https://dol-lyra.github.io/${{ github.event.repository.name }}/${{ env.MODLOADER_HTML_NORMAL_FILENAME }}"
+          # 更新为使用当前仓库的gh-pages分支的URL
+          PAGES_URL="https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${{ env.MODLOADER_HTML_NORMAL_FILENAME }}"
           echo "验证GitHub Pages URL: $PAGES_URL"
           
           # 简单的HTTP状态检查

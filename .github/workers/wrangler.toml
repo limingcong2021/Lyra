@@ -4,9 +4,7 @@ main = "signaling-server.js"
 compatibility_date = "2024-04-01"
 
 # 开发环境配置
-dev = {
-  command = "node signaling-server.js"  # 移除--input-type=module，依赖package.json中的"type": "module"
-}
+dev = { command = "node signaling-server.js" }  # 移除--input-type=module，依赖package.json中的"type": "module"
 
 # 环境变量配置
 [vars]

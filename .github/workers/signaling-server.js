@@ -210,9 +210,10 @@ async function handleRequest(request) {
   }
 }
 
-// 导出处理函数
-export default {
-  async fetch(request, env, ctx) {
-    return handleRequest(request);
-  },
+// 导出处理函数，仅使用 CommonJS 模块系统以兼容 Node.js
+module.exports = handleRequest;
+
+// 为了在 Cloudflare Worker 环境中也能正常工作，我们提供一个 fetch 方法
+module.exports.fetch = async function(request, env, ctx) {
+  return handleRequest(request);
 };

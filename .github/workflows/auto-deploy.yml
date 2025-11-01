@@ -342,11 +342,10 @@ jobs:
           accountId: ${{ secrets.CF_ACCOUNT_ID }}
           command: deploy
           workingDirectory: ${{ github.workspace }}/.github/workers
-          wranglerVersion: 'latest'
       
       # 输出Worker部署信息
       - name: 输出Worker部署信息
-        if: steps.check_worker.outputs.exists == 'true' && steps.check_env.outputs.has_token == 'true' && steps.check_env.outputs.has_account == 'true'
+        if: steps.check_worker.outputs.exists == 'true'
         run: |
           echo "=== Worker部署信息 ==="
           echo "Worker名称: ${{ env.WORKER_NAME }}"

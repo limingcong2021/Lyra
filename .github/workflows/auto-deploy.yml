@@ -279,14 +279,13 @@ jobs:
           keep_history: false
           target_branch: gh-pages
       
-      # 使用更可靠的方法检查Cloudflare Pages环境变量
+      # 检查Cloudflare Pages环境变量
       - name: 检查Cloudflare Pages环境变量
         id: check_cf_pages_env
         run: |
-          # 使用表达式长度检查而不是空值检查，更可靠地检测GitHub Secrets
-          TOKEN_LENGTH=$(echo -n "${{ secrets.CF_PAGES_API_TOKEN }}" | wc -c)
-          if [ "$TOKEN_LENGTH" -gt 0 ]; then
-            echo "CF_PAGES_API_TOKEN 环境变量已设置（长度验证）"
+          # 使用直接比较检查环境变量是否存在
+          if [ "${{ secrets.CF_PAGES_API_TOKEN }}" != "" ]; then
+            echo "CF_PAGES_API_TOKEN 环境变量已设置"
             echo "has_token=true" >> $GITHUB_OUTPUT
           else
             echo "警告: CF_PAGES_API_TOKEN 环境变量未设置，跳过Cloudflare Pages部署"
@@ -325,19 +324,17 @@ jobs:
       - name: 检查环境变量
         id: check_env
         run: |
-          # 使用更可靠的长度检查方法检测GitHub Secrets
-          TOKEN_LENGTH=$(echo -n "${{ secrets.CF_PAGES_API_TOKEN }}" | wc -c)
-          if [ "$TOKEN_LENGTH" -gt 0 ]; then
-            echo "CF_PAGES_API_TOKEN 环境变量已设置（长度验证）"
+          # 使用更通用的方式检查GitHub Secrets
+          if [ "${{ secrets.CF_PAGES_API_TOKEN }}" != "" ]; then
+            echo "CF_PAGES_API_TOKEN 环境变量已设置"
             echo "has_token=true" >> $GITHUB_OUTPUT
           else
             echo "警告: CF_PAGES_API_TOKEN 环境变量未设置"
             echo "has_token=false" >> $GITHUB_OUTPUT
           fi
           
-          ACCOUNT_ID_LENGTH=$(echo -n "${{ secrets.CF_ACCOUNT_ID }}" | wc -c)
-          if [ "$ACCOUNT_ID_LENGTH" -gt 0 ]; then
-            echo "CF_ACCOUNT_ID 环境变量已设置（长度验证）"
+          if [ "${{ secrets.CF_ACCOUNT_ID }}" != "" ]; then
+            echo "CF_ACCOUNT_ID 环境变量已设置"
             echo "has_account=true" >> $GITHUB_OUTPUT
           else
             echo "警告: CF_ACCOUNT_ID 环境变量未设置"

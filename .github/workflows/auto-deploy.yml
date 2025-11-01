@@ -279,11 +279,9 @@ jobs:
         id: deploy_cloudflare
         uses: cloudflare/pages-action@v1
         with:
-          api-token: ${{ secrets.CF_PAGES_API_TOKEN }}
-          project-name: "degrees-of-lewdity"
+          apiToken: ${{ secrets.CF_PAGES_API_TOKEN }}
+          projectName: "degrees-of-lewdity"
           directory: "./modloader-temp"
-          framework: "custom"
-          build-command: ""
       
       # 输出部署信息
       - name: 输出部署信息
@@ -334,7 +332,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           accountId: ${{ secrets.CF_ACCOUNT_ID }}
-          command: deploy --verbose
+          command: deploy
           workingDirectory: ${{ github.workspace }}/.github/workers
           wranglerVersion: 'latest'
       

@@ -30,7 +30,7 @@ jobs:
 
       # 下载 HTML 模板 ZIP 文件
       - name: Download HTML Template
-        uses: robinraju/release-downloader@v1.14.0
+        uses: robinraju/release-downloader@v1.12
         with:
           repository: "DoL-Lyra/DoLModLoaderBuild"
           latest: true

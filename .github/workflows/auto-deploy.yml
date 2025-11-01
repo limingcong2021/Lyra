@@ -62,7 +62,7 @@ jobs:
       # 下载DoL正常版本
       - name: 下载DoL正常版本
         id: getRelease
-        uses: robinraju/release-downloader@v1.14.0
+        uses: robinraju/release-downloader@v1.12
         with:
           repository: "DoL-Lyra/Lyra"
           latest: true
@@ -73,7 +73,7 @@ jobs:
       # 下载DoL Polyfill版本
       - name: 下载DoL Polyfill版本
         id: getRelease-polyfill
-        uses: robinraju/release-downloader@v1.14.0
+        uses: robinraju/release-downloader@v1.12
         with:
           repository: "DoL-Lyra/Lyra"
           latest: true

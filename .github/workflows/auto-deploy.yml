@@ -279,23 +279,9 @@ jobs:
           keep_history: false
           target_branch: gh-pages
       
-      # 检查Cloudflare Pages环境变量
-      - name: 检查Cloudflare Pages环境变量
-        id: check_cf_pages_env
-        run: |
-          # 使用直接比较检查环境变量是否存在
-          if [ "${{ secrets.CF_PAGES_API_TOKEN }}" != "" ]; then
-            echo "CF_PAGES_API_TOKEN 环境变量已设置"
-            echo "has_token=true" >> $GITHUB_OUTPUT
-          else
-            echo "警告: CF_PAGES_API_TOKEN 环境变量未设置，跳过Cloudflare Pages部署"
-            echo "has_token=false" >> $GITHUB_OUTPUT
-          fi
-      
-      # 部署到Cloudflare Pages（仅当环境变量存在时）
+      # 跳过密钥检查，直接部署到Cloudflare Pages
       - name: 部署到Cloudflare Pages
         id: deploy_cloudflare
-        if: steps.check_cf_pages_env.outputs.has_token == 'true'
         uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CF_PAGES_API_TOKEN }}
@@ -321,25 +307,7 @@ jobs:
       - name: 克隆代码
         uses: actions/checkout@v4
       
-      - name: 检查环境变量
-        id: check_env
-        run: |
-          # 使用更通用的方式检查GitHub Secrets
-          if [ "${{ secrets.CF_PAGES_API_TOKEN }}" != "" ]; then
-            echo "CF_PAGES_API_TOKEN 环境变量已设置"
-            echo "has_token=true" >> $GITHUB_OUTPUT
-          else
-            echo "警告: CF_PAGES_API_TOKEN 环境变量未设置"
-            echo "has_token=false" >> $GITHUB_OUTPUT
-          fi
-          
-          if [ "${{ secrets.CF_ACCOUNT_ID }}" != "" ]; then
-            echo "CF_ACCOUNT_ID 环境变量已设置"
-            echo "has_account=true" >> $GITHUB_OUTPUT
-          else
-            echo "警告: CF_ACCOUNT_ID 环境变量未设置"
-            echo "has_account=false" >> $GITHUB_OUTPUT
-          fi
+      # 跳过环境变量检查，直接使用Secrets
       
       - name: 检查Worker脚本是否存在
         id: check_worker
@@ -364,10 +332,10 @@ jobs:
           }
           echo "Worker脚本语法检查通过"
       
-      # 仅当Worker脚本存在且环境变量设置完整时执行部署
+      # 仅当Worker脚本存在时执行部署
       - name: 部署Cloudflare Worker
         id: deploy_worker
-        if: steps.check_worker.outputs.exists == 'true' && steps.check_env.outputs.has_token == 'true' && steps.check_env.outputs.has_account == 'true'
+        if: steps.check_worker.outputs.exists == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CF_PAGES_API_TOKEN }}

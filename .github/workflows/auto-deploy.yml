@@ -104,6 +104,7 @@ jobs:
       - name: 修改HTML文件
         shell: python3 {0}
         run: |
+          import os
           for html_name, manifest_name in zip(
             ["${{ env.MODLOADER_HTML_NORMAL_FILENAME }}", "${{ env.MODLOADER_HTML_POLYFILL_FILENAME }}"],
             ["${{ env.MANIFEST_JSON_NORMAL_FILENAME }}", "${{ env.MANIFEST_JSON_POLYFILL_FILENAME }}"]

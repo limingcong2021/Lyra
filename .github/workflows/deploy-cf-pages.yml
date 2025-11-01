@@ -62,6 +62,7 @@ jobs:
       - name: 修改 HTML 文件
         shell: python3 {0}
         run: |
+          import os
           for html_name, manifest_name in zip(
             ["${{ env.MODLOADER_HTML_NORMAL_FILENAME }}", "${{ env.MODLOADER_HTML_POLYFILL_FILENAME }}"],
             ["${{ env.MANIFEST_JSON_NORMAL_FILENAME }}", "${{ env.MANIFEST_JSON_POLYFILL_FILENAME }}"]
@@ -114,6 +115,7 @@ jobs:
         shell: python3 {0}
         run: |
           import json
+          import os
 
           for manifest_name in ["${{ env.MANIFEST_JSON_NORMAL_FILENAME }}", "${{ env.MANIFEST_JSON_POLYFILL_FILENAME }}"]:
             with open(f"./modloader-temp/{manifest_name}", "r+", encoding="utf-8") as manifest_file:

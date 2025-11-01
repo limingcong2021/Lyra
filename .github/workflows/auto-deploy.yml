@@ -219,7 +219,7 @@ jobs:
       has_deployed_html: ${{ steps.deploy_html.outputs.success }}
       has_deployed_worker: ${{ steps.check_worker.outputs.exists }}
       pages_deploy_status: ${{ steps.deploy_cloudflare.outcome }}
-      has_cf_pages_deploy: ${{ steps.debug_cf_token.outputs.has_token == 'true' }}
+      has_cf_pages_deploy: ${{ steps.check_cf_pages_env.outputs.has_token == 'true' }}
     steps:
       - name: 克隆代码
         uses: actions/checkout@v4
@@ -279,31 +279,22 @@ jobs:
           keep_history: false
           target_branch: gh-pages
       
-      # 添加调试信息显示密钥是否存在（安全方式）
-      - name: 调试Cloudflare API Token存在性
-        id: debug_cf_token
+      # 检查Cloudflare Pages环境变量
+      - name: 检查Cloudflare Pages环境变量
+        id: check_cf_pages_env
         run: |
-          # 安全地检查密钥是否存在，只输出长度而不是实际值
-          TOKEN_LENGTH=$(expr length "${{ secrets.CF_PAGES_API_TOKEN }}")
-          if [ $TOKEN_LENGTH -gt 0 ]; then
-            echo "调试信息: CF_PAGES_API_TOKEN 存在，长度: $TOKEN_LENGTH 字符"
-            echo "token_exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "调试信息: CF_PAGES_API_TOKEN 不存在或为空"
-            echo "token_exists=false" >> $GITHUB_OUTPUT
-          fi
-          
-          # 检查环境变量
-          if [ -n "${{ secrets.CF_PAGES_API_TOKEN }}" ]; then
-            echo "has_token=true" >> $GITHUB_OUTPUT
-          else
+          if [ -z "${{ secrets.CF_PAGES_API_TOKEN }}" ]; then
+            echo "警告: CF_PAGES_API_TOKEN 环境变量未设置，跳过Cloudflare Pages部署"
             echo "has_token=false" >> $GITHUB_OUTPUT
+          else
+            echo "CF_PAGES_API_TOKEN 环境变量已设置"
+            echo "has_token=true" >> $GITHUB_OUTPUT
           fi
       
       # 部署到Cloudflare Pages（仅当环境变量存在时）
       - name: 部署到Cloudflare Pages
         id: deploy_cloudflare
-        if: steps.debug_cf_token.outputs.has_token == 'true'
+        if: steps.check_cf_pages_env.outputs.has_token == 'true'
         uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CF_PAGES_API_TOKEN }}
@@ -329,27 +320,24 @@ jobs:
       - name: 克隆代码
         uses: actions/checkout@v4
       
-      - name: 检查并调试环境变量
+      - name: 检查环境变量
         id: check_env
         run: |
-          # 安全地检查CF_PAGES_API_TOKEN是否存在
-          TOKEN_LENGTH=$(expr length "${{ secrets.CF_PAGES_API_TOKEN }}")
-          if [ $TOKEN_LENGTH -gt 0 ]; then
-            echo "调试信息: CF_PAGES_API_TOKEN 存在，长度: $TOKEN_LENGTH 字符"
-            echo "has_token=true" >> $GITHUB_OUTPUT
-          else
-            echo "调试信息: CF_PAGES_API_TOKEN 不存在或为空"
+          # 检查必要的环境变量
+          if [ -z "${{ secrets.CF_PAGES_API_TOKEN }}" ]; then
+            echo "警告: CF_PAGES_API_TOKEN 环境变量未设置"
             echo "has_token=false" >> $GITHUB_OUTPUT
+          else
+            echo "CF_PAGES_API_TOKEN 环境变量已设置"
+            echo "has_token=true" >> $GITHUB_OUTPUT
           fi
           
-          # 安全地检查CF_ACCOUNT_ID是否存在
-          ACCOUNT_ID_LENGTH=$(expr length "${{ secrets.CF_ACCOUNT_ID }}")
-          if [ $ACCOUNT_ID_LENGTH -gt 0 ]; then
-            echo "调试信息: CF_ACCOUNT_ID 存在，长度: $ACCOUNT_ID_LENGTH 字符"
-            echo "has_account=true" >> $GITHUB_OUTPUT
-          else
-            echo "调试信息: CF_ACCOUNT_ID 不存在或为空"
+          if [ -z "${{ secrets.CF_ACCOUNT_ID }}" ]; then
+            echo "警告: CF_ACCOUNT_ID 环境变量未设置"
             echo "has_account=false" >> $GITHUB_OUTPUT
+          else
+            echo "CF_ACCOUNT_ID 环境变量已设置"
+            echo "has_account=true" >> $GITHUB_OUTPUT
           fi
       
       - name: 检查Worker脚本是否存在

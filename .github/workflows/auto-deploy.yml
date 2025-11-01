@@ -341,8 +341,9 @@ jobs:
         id: deploy_worker
         if: steps.check_worker.outputs.exists == 'true'
         uses: cloudflare/wrangler-action@v3
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CF_PAGES_API_TOKEN }}
         with:
-          apiToken: ${{ secrets.CF_PAGES_API_TOKEN }}
           accountId: ${{ secrets.CF_ACCOUNT_ID }}
           command: deploy
           workingDirectory: ${{ github.workspace }}/.github/workers

@@ -4,13 +4,11 @@ on:
   push:
     branches:
       - main
-    tags:
-      - "*"
-    paths-ignore:
-      - "README.md"
-      - "LICENSE"
-      - ".github/workflows/trigger.yaml"
-      - ".github/workflows/deploy-hub.yaml"
+    paths:
+      - ".github/pwa/**"
+      - "**/*.html"
+      - "**/*.json"
+      - "**/*.js"
   workflow_dispatch:
 
 env:
@@ -32,11 +30,13 @@ jobs:
 
       # 下载 HTML 模板 ZIP 文件
       - name: Download HTML Template
-        uses: robinraju/release-downloader@v1.12
+        uses: robinraju/release-downloader@v1.14.0
         with:
           repository: "DoL-Lyra/DoLModLoaderBuild"
           latest: true
           fileName: "DoL-ModLoader-*.zip"
+          extract: false
+          token: ${{ github.token }}
 
       # 解压并重命名文件
       - name: Extract and Prepare Files

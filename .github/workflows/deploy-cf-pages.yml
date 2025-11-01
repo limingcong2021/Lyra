@@ -2,11 +2,6 @@ name: Deploy to Cloudflare Pages
 
 on:
   workflow_dispatch:  # 手动触发
-  push:
-    branches:
-      - main  # 自动触发 main 分支的提交
-    tags:  # 自动触发标签创建
-      - '*'
   workflow_call:  # 允许被其他工作流调用
 
 env:

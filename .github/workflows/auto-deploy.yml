@@ -215,6 +215,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     environment: production
+    outputs:
+      has_deployed_html: ${{ steps.deploy_html.outputs.success }}
+      has_deployed_worker: ${{ steps.check_worker.outputs.exists }}
+      pages_deploy_status: ${{ steps.deploy_cloudflare.outcome }}
+      has_cf_pages_deploy: ${{ steps.check_cf_pages_env.outputs.has_token == 'true' }}
     steps:
       - name: 克隆代码
         uses: actions/checkout@v4
@@ -274,9 +279,22 @@ jobs:
           keep_history: false
           target_branch: gh-pages
       
-      # 部署到Cloudflare Pages
+      # 检查Cloudflare Pages环境变量
+      - name: 检查Cloudflare Pages环境变量
+        id: check_cf_pages_env
+        run: |
+          if [ -z "${{ secrets.CF_PAGES_API_TOKEN }}" ]; then
+            echo "警告: CF_PAGES_API_TOKEN 环境变量未设置，跳过Cloudflare Pages部署"
+            echo "has_token=false" >> $GITHUB_OUTPUT
+          else
+            echo "CF_PAGES_API_TOKEN 环境变量已设置"
+            echo "has_token=true" >> $GITHUB_OUTPUT
+          fi
+      
+      # 部署到Cloudflare Pages（仅当环境变量存在时）
       - name: 部署到Cloudflare Pages
         id: deploy_cloudflare
+        if: steps.check_cf_pages_env.outputs.has_token == 'true'
         uses: cloudflare/pages-action@v1
         with:
           apiToken: ${{ secrets.CF_PAGES_API_TOKEN }}
@@ -302,6 +320,26 @@ jobs:
       - name: 克隆代码
         uses: actions/checkout@v4
       
+      - name: 检查环境变量
+        id: check_env
+        run: |
+          # 检查必要的环境变量
+          if [ -z "${{ secrets.CF_PAGES_API_TOKEN }}" ]; then
+            echo "警告: CF_PAGES_API_TOKEN 环境变量未设置"
+            echo "has_token=false" >> $GITHUB_OUTPUT
+          else
+            echo "CF_PAGES_API_TOKEN 环境变量已设置"
+            echo "has_token=true" >> $GITHUB_OUTPUT
+          fi
+          
+          if [ -z "${{ secrets.CF_ACCOUNT_ID }}" ]; then
+            echo "警告: CF_ACCOUNT_ID 环境变量未设置"
+            echo "has_account=false" >> $GITHUB_OUTPUT
+          else
+            echo "CF_ACCOUNT_ID 环境变量已设置"
+            echo "has_account=true" >> $GITHUB_OUTPUT
+          fi
+      
       - name: 检查Worker脚本是否存在
         id: check_worker
         run: |
@@ -313,7 +351,7 @@ jobs:
             echo "警告: Worker脚本不存在，跳过部署"
           fi
       
-      # 检查Worker脚本语法
+      # 检查Worker脚本语法（仅当脚本存在时）
       - name: 检查Worker脚本语法
         if: steps.check_worker.outputs.exists == 'true'
         run: |
@@ -325,12 +363,13 @@ jobs:
           }
           echo "Worker脚本语法检查通过"
       
-      # 仅当Worker脚本存在时执行部署
+      # 仅当Worker脚本存在且环境变量设置完整时执行部署
       - name: 部署Cloudflare Worker
-        if: steps.check_worker.outputs.exists == 'true'
+        id: deploy_worker
+        if: steps.check_worker.outputs.exists == 'true' && steps.check_env.outputs.has_token == 'true' && steps.check_env.outputs.has_account == 'true'
         uses: cloudflare/wrangler-action@v3
         with:
-          apiToken: ${{ secrets.CF_API_TOKEN }}
+          apiToken: ${{ secrets.CF_PAGES_API_TOKEN }}
           accountId: ${{ secrets.CF_ACCOUNT_ID }}
           command: deploy
           workingDirectory: ${{ github.workspace }}/.github/workers
@@ -338,7 +377,7 @@ jobs:
       
       # 输出Worker部署信息
       - name: 输出Worker部署信息
-        if: steps.check_worker.outputs.exists == 'true'
+        if: steps.check_worker.outputs.exists == 'true' && steps.check_env.outputs.has_token == 'true' && steps.check_env.outputs.has_account == 'true'
         run: |
           echo "=== Worker部署信息 ==="
           echo "Worker名称: ${{ env.WORKER_NAME }}"
@@ -382,11 +421,19 @@ jobs:
             echo "success=false" >> $GITHUB_OUTPUT
           fi
       
-      # 验证Cloudflare Pages部署
+      # 验证Cloudflare Pages部署（仅当部署实际执行时）
       - name: 验证Cloudflare Pages部署
         id: verify_cloudflare_pages
+        if: ${{ needs.deploy-pages.result == 'success' }}
         continue-on-error: true
         run: |
+          # 检查部署是否实际执行
+          if [ "${{ needs.deploy-pages.outputs.has_cf_pages_deploy }}" != "true" ]; then
+            echo "Cloudflare Pages部署未执行，跳过验证"
+            echo "success=skipped" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
           # 假设Cloudflare Pages URL格式
           CF_URL="https://degrees-of-lewdity.pages.dev/${{ env.MODLOADER_HTML_NORMAL_FILENAME }}"
           echo "验证Cloudflare Pages URL: $CF_URL"

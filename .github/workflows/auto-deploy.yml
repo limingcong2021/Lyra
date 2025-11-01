@@ -317,6 +317,18 @@ jobs:
             echo "警告: Worker脚本不存在，跳过部署"
           fi
       
+      # 检查Worker脚本语法
+      - name: 检查Worker脚本语法
+        if: steps.check_worker.outputs.exists == 'true'
+        run: |
+          echo "检查Worker脚本语法..."
+          # 使用Node.js的语法检查模式，指定为ES模块
+          node --input-type=module --check ${{ env.WORKER_SCRIPT_PATH }} || {
+            echo "Worker脚本语法检查失败！"
+            exit 1
+          }
+          echo "Worker脚本语法检查通过"
+      
       # 仅当Worker脚本存在时执行部署
       - name: 部署Cloudflare Worker
         if: steps.check_worker.outputs.exists == 'true'
@@ -324,8 +336,8 @@ jobs:
         with:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           accountId: ${{ secrets.CF_ACCOUNT_ID }}
-          command: deploy ${{ env.WORKER_SCRIPT_PATH }} --name ${{ env.WORKER_NAME }}
-          workingDirectory: ${{ github.workspace }}
+          command: deploy
+          workingDirectory: ${{ github.workspace }}/.github/workers
       
       # 输出Worker部署信息
       - name: 输出Worker部署信息

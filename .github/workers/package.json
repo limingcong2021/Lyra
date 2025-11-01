@@ -1,0 +1,6 @@
+{
+  "name": "dol-lyra-signaling-worker",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker for DoL-Lyra PVP signaling server",
+  "type": "module"
+}

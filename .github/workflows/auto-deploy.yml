@@ -111,9 +111,7 @@ jobs:
               index_html = index_html_file.read()
               insert_index = index_html.find('<meta charset="UTF-8" />')
               if insert_index != -1:
-                  index_html = index_html[:insert_index] + \
-                      f"<link rel=\"manifest\" href=\"{manifest_name}\">
-" + index_html[insert_index:]
+                  index_html = index_html[:insert_index] + f"<link rel=\"manifest\" href=\"{manifest_name}\">\n" + index_html[insert_index:]
               else:
                   print(f"警告: 未找到插入点 - <meta charset=\"UTF-8\" />")
               
